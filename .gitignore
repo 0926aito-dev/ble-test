@@ -1,0 +1,8 @@
+pc/.venv/
+__pycache__/
+ios/build/
+ios/*.xcodeproj/
+ios/BLETest/Info.plist
+ios/Payload/
+*.ipa
+.DS_Store

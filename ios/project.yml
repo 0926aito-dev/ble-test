@@ -1,0 +1,41 @@
+# XcodeGen の設定（https://github.com/yonaskolb/XcodeGen）
+# GitHub Actions の macOS 上で `xcodegen generate` すると BLETest.xcodeproj ができる
+name: BLETest
+options:
+  bundleIdPrefix: com.gamekikaku
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+targets:
+  BLETest:
+    type: application
+    platform: iOS
+    sources:
+      - path: BLETest
+    info:
+      path: BLETest/Info.plist
+      properties:
+        CFBundleDisplayName: BLE試験
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        # Bluetooth を使う理由（iOS 13 以降は必須。Apple: NSBluetoothAlwaysUsageDescription）
+        NSBluetoothAlwaysUsageDescription: 近くにある同じアプリを Bluetooth で見つける試験のために使います。
+        # 裏でも探す・発信する（Apple: UIBackgroundModes の bluetooth-central / bluetooth-peripheral）
+        UIBackgroundModes:
+          - bluetooth-central
+          - bluetooth-peripheral
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.gamekikaku.bletest
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: NO
+schemes:
+  BLETest:
+    build:
+      targets:
+        BLETest: all

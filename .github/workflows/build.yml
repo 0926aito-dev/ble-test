@@ -1,0 +1,59 @@
+# 署名なしの .ipa を作る。社長は Actions の画面から artifact をダウンロードして Sideloadly で署名して入れる。
+name: build-ipa
+
+on:
+  workflow_dispatch:   # Actions の画面の「Run workflow」ボタンで動かす
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: xcodegen generate
+
+      - name: Build (unsigned)
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project BLETest.xcodeproj \
+            -scheme BLETest \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package .ipa
+        working-directory: ios
+        run: |
+          APP=build/Build/Products/Release-iphoneos/BLETest.app
+          test -d "$APP"
+          echo "--- Info.plist の裏の動作のキーを確かめる ---"
+          /usr/libexec/PlistBuddy -c "Print :UIBackgroundModes" "$APP/Info.plist"
+          rm -rf Payload
+          mkdir Payload
+          cp -R "$APP" Payload/
+          zip -qry BLETest-unsigned.ipa Payload
+          ls -la BLETest-unsigned.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BLETest-unsigned-ipa
+          path: ios/BLETest-unsigned.ipa
+          retention-days: 14
